@@ -1,40 +1,89 @@
 <template>
     <div class="recommend" ref="recommend">
-      <div class="recommend-content">
-        <div class="slider-wrapper"></div>
-        <div class="recommend-list">
-          <h1 class="list-title">热门歌单推荐</h1>
-          <ul></ul>
+      <scroll ref="scroll" class="recommend-content" :data="discList">
+        <div>
+          <div v-if="recommends.length" class="slider-wrapper">
+            <slider>
+              <div v-for="item in recommends">
+                <a :href="item.linkUrl">
+                  <img class="needsclick" @load="loadImage" :src="item.picUrl">
+                </a>
+              </div>
+            </slider>
+          </div>
+          <div class="recommend-list">
+            <h1 class="list-title">热门歌单推荐</h1>
+            <ul>
+              <li v-for="item in discList" class="item">
+                <div class="icon">
+                  <img v-lazy="item.imgurl" alt="" width="60" height="60">
+                </div>
+                <div class="text">
+                  <h2 class="name" v-html="item.creator.name"></h2>
+                  <p class="desc" v-html="item.dissname"></p>
+                </div>
+              </li>
+            </ul>
+          </div>
         </div>
-      </div>
+        <div class="loading-container" v-show="!discList.length">
+          <loading></loading>
+        </div>
+      </scroll>
     </div>
 </template>
 
 <script>
-// import Slider from 'base/slider/slider'
-// import Loading from 'base/loading/loding'
-// import scroll from 'base/scroll/scroll'
+import Slider from 'base/slider/slider'
+import Loading from 'base/loading/loading'
+import Scroll from 'base/scroll/scroll'
 import {getRecommend,getDiscList} from 'api/recommend'
 // import {playlistMixin} from 'common/js/mixin'
 import {ERR_OK} from 'api/config'
 // import {mapMutations} from 'vuex'
+
+
 export default{
   data(){
     return{
-
+      recommends:[],
+      discList:[]
     }
   },
   created(){
-    this.getRecommemd1();
+    this._getRecommemd();
+    this._getDiscList();
   },
   methods:{
-    getRecommemd1(){
+    // 传出轮播图数据
+    _getRecommemd(){
       getRecommend().then(res=>{
         if(res.code === ERR_OK ){
-          console.log(res)
+          this.recommends = res.data.slider;
         }
       })
+    },
+    // 传出热门歌曲数据
+    _getDiscList(){
+      getDiscList().then((res)=>{
+        if(res.code === ERR_OK){
+          this.discList = res.data.list;
+          console.log(this.discList)
+        }
+      })
+    },
+    loadImage(){
+      if(!this.checkloaded){
+        this.checkloaded = true;
+        this.$refs.scroll.refresh()
+      }
+      
     }
+  },
+  components:{
+    Slider,
+    Scroll,
+    Loading
   }
 }
 </script>
